@@ -1,0 +1,994 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>個人色彩鑑定 · Personal Color Draping</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;500;600;700&family=Noto+Sans+TC:wght@300;400;500;600;700&family=EB+Garamond:ital,wght@0,500;0,600;1,500&display=swap" rel="stylesheet">
+<style>
+  /* ====== Absolute-neutral palette — no warm/cool cast, safe for color judgement ====== */
+  :root{
+    --bg: #e9e9e8;         /* neutral mid-light gray, colorless */
+    --bg-stage: #dedede;   /* the judging zone — slightly deeper neutral gray, non-reflective */
+    --surface: #ffffff;
+    --surface-2: #f4f4f3;
+    --ink: #212121;
+    --ink-soft: #6c6c6a;
+    --ink-faint: #9d9d9a;
+    --line: #d3d3d1;
+    --line-soft: #e3e3e1;
+    --accent: #4a4a47;       /* neutral graphite, used instead of chromatic accents */
+    --gold: #8a7a4e;         /* single muted, low-saturation marker color for "final pick" */
+    --lip: #a85952;          /* fixed natural lip tone, independent of garment */
+    --lip-deep:#8f423d;
+    --towel: #fbfbfa;
+    --towel-shade:#e4e4e2;
+    --radius-lg: 22px;
+    --radius-md: 14px;
+    --radius-sm: 8px;
+    --shadow-soft: 0 10px 28px -14px rgba(20,20,20,0.22);
+    --shadow-tiny: 0 2px 8px -2px rgba(20,20,20,0.16);
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--bg);
+    color:var(--ink);
+    font-family:'Noto Sans TC','Noto Sans',sans-serif;
+    font-weight:400;
+    -webkit-font-smoothing:antialiased;
+    min-height:100vh;
+  }
+  h1,h2,h3,.serif{font-family:'Noto Serif TC','EB Garamond',serif;}
+  .em{font-family:'EB Garamond',serif; font-style:italic;}
+  button{font-family:inherit; cursor:pointer;}
+  ::selection{background:#cfcfcb;}
+
+  #app{max-width:1180px; margin:0 auto; padding:0 clamp(10px,4vw,24px) 80px;}
+
+  /* ---------- Topbar ---------- */
+  #topbar{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:28px 4px 18px; gap:20px; flex-wrap:wrap;
+  }
+  .brand{display:flex; align-items:baseline; gap:12px;}
+  .brand .mark{
+    width:34px; height:34px; border-radius:50%;
+    background: conic-gradient(from 180deg, #3d3d3b, #7a7a76, #b8b8b3, #7a7a76, #3d3d3b);
+    box-shadow: inset 0 0 0 5px var(--surface), var(--shadow-tiny);
+    flex-shrink:0;
+  }
+  .brand .name{font-size:21px; font-weight:600; letter-spacing:0.5px;}
+  .brand .name small{display:block; font-size:11px; font-weight:400; letter-spacing:2.5px; color:var(--ink-soft); text-transform:uppercase; font-family:'EB Garamond',serif;}
+
+  .profile-chip{
+    display:flex; align-items:center; gap:10px;
+    background:var(--surface); border:1px solid var(--line);
+    padding:7px 8px 7px 14px; border-radius:999px; box-shadow:var(--shadow-tiny);
+    font-size:13px; color:var(--ink-soft);
+  }
+  .profile-chip .swatch{width:20px; height:20px; border-radius:50%; border:1px solid rgba(0,0,0,0.08); flex-shrink:0;}
+  .profile-chip button{
+    border:none; background:var(--ink); color:var(--surface); font-size:12px;
+    padding:6px 13px; border-radius:999px; font-weight:500; letter-spacing:0.3px;
+  }
+  .profile-chip button:hover{background:#000;}
+
+  /* ---------- Setup screen ---------- */
+  .setup-hero{ text-align:center; padding:36px 10px 8px; }
+  .setup-hero .eyebrow{
+    font-family:'EB Garamond',serif; font-style:italic; letter-spacing:3px; text-transform:uppercase;
+    color:var(--accent); font-size:13px; margin-bottom:14px; display:block;
+  }
+  .setup-hero h1{font-size:clamp(28px,4.4vw,44px); font-weight:600; margin:0 0 14px; line-height:1.35;}
+  .setup-hero p{color:var(--ink-soft); font-size:15px; max-width:560px; margin:0 auto; line-height:1.9;}
+
+  .setup-card{
+    background:var(--surface); border-radius:var(--radius-lg); border:1px solid var(--line);
+    box-shadow:var(--shadow-soft); padding:36px clamp(18px,4vw,44px); margin-top:34px;
+  }
+  .step-label{
+    display:flex; align-items:center; gap:10px; margin-bottom:20px;
+  }
+  .step-label .num{
+    width:26px; height:26px; border-radius:50%; background:var(--ink); color:var(--surface);
+    display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:600; font-family:'EB Garamond',serif;
+  }
+  .step-label span.t{font-size:16px; font-weight:600;}
+  .step-label span.sub{font-size:12px; color:var(--ink-faint); font-family:'EB Garamond',serif; font-style:italic;}
+
+  .skin-grid{
+    display:grid; grid-template-columns:repeat(4,1fr); gap:14px;
+  }
+  .skin-swatch{
+    border-radius:var(--radius-md); overflow:hidden; border:1.5px solid var(--line);
+    background:var(--surface); cursor:pointer; transition:all .16s ease; text-align:left;
+    display:flex; flex-direction:column;
+  }
+  .skin-swatch:hover{transform:translateY(-3px); box-shadow:var(--shadow-tiny);}
+  .skin-swatch.active{border-color:var(--ink); box-shadow:0 0 0 2px var(--ink), var(--shadow-tiny);}
+  .skin-swatch .fill{height:58px; width:100%;}
+  .skin-swatch .lbl{
+    padding:9px 11px 11px; font-size:12.5px; font-weight:500; color:var(--ink);
+    display:flex; align-items:center; justify-content:space-between;
+  }
+  .skin-swatch .lbl .ck{opacity:0; font-size:12px;}
+  .skin-swatch.active .lbl .ck{opacity:1;}
+
+  .setup-cta{display:flex; justify-content:center; margin-top:38px;}
+  .btn-primary{
+    background:var(--ink); color:var(--surface); border:none; padding:15px 46px; border-radius:999px;
+    font-size:14.5px; font-weight:600; letter-spacing:0.5px; box-shadow:var(--shadow-tiny);
+    transition:all .16s ease;
+  }
+  .btn-primary:disabled{background:#cac9c5; cursor:not-allowed; box-shadow:none;}
+  .btn-primary:not(:disabled):hover{background:#000; transform:translateY(-1px);}
+  .btn-ghost{
+    background:transparent; border:1.5px solid var(--line); color:var(--ink); padding:12px 28px;
+    border-radius:999px; font-size:13.5px; font-weight:500;
+  }
+  .btn-ghost:hover{border-color:var(--ink);}
+
+  /* ---------- Avatar judging stage (must stay neutral) ---------- */
+  .avatar-stage{
+    background:var(--bg-stage);
+    border:1px solid #cfcfcd; border-radius:var(--radius-lg); box-shadow:var(--shadow-soft);
+    padding:clamp(18px,5vw,32px) clamp(8px,3vw,20px) 24px; margin-top:8px; position:relative; overflow:hidden;
+  }
+  .avatar-stage .stage-note{
+    text-align:center; font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:#8c8c89;
+    font-family:'EB Garamond',serif; font-style:italic; margin-bottom:18px;
+  }
+  /* Two avatars must always sit side-by-side (never stack) so colour comparison stays valid on any
+     screen width — both the row gap and each avatar's own width shrink fluidly with the viewport
+     instead of wrapping to a fixed breakpoint value. */
+  .avatar-row{display:flex; justify-content:center; align-items:flex-end; gap:clamp(8px,4vw,90px); flex-wrap:nowrap; position:relative;}
+  .avatar-unit{display:flex; flex-direction:column; align-items:center; gap:clamp(5px,1.5vw,10px); min-width:0; flex:0 1 auto;}
+  .avatar-unit .avatar-tag{
+    font-size:clamp(9px,2.6vw,11px); letter-spacing:1.5px; text-transform:uppercase; color:#7d7d7a;
+    font-family:'EB Garamond',serif; font-style:italic; white-space:nowrap;
+  }
+  .avatar-wrap{width:clamp(78px,26vw,192px); filter:drop-shadow(0 14px 16px rgba(0,0,0,0.16)); flex-shrink:0;}
+  .avatar-wrap svg{width:100%; height:auto; display:block;}
+  .avatar-color-label{
+    font-size:clamp(10px,2.8vw,12px); color:var(--ink-soft); display:flex; align-items:center; gap:5px;
+    background:var(--surface); border:1px solid var(--line); padding:4px 9px; border-radius:999px; white-space:nowrap;
+  }
+  .avatar-color-label .dot{width:9px; height:9px; border-radius:50%; border:1px solid rgba(0,0,0,0.1); flex-shrink:0;}
+
+  /* ---------- Tabs ---------- */
+  .tabnav{
+    display:flex; gap:6px; margin:34px 0 26px; border-bottom:1px solid var(--line);
+    overflow-x:auto; scrollbar-width:none;
+  }
+  .tabnav::-webkit-scrollbar{display:none;}
+  .tabnav button{
+    background:none; border:none; padding:13px 6px; margin-right:22px; font-size:14.5px;
+    font-weight:500; color:var(--ink-faint); position:relative; white-space:nowrap;
+    font-family:'Noto Serif TC',serif;
+  }
+  .tabnav button .idx{font-family:'EB Garamond',serif; font-style:italic; font-size:12px; margin-right:6px; color:var(--ink-faint);}
+  .tabnav button.active{color:var(--ink);}
+  .tabnav button.active::after{
+    content:''; position:absolute; left:0; right:0; bottom:-1px; height:2px; background:var(--ink);
+  }
+
+  .panel{animation:fadeIn .35s ease;}
+  @keyframes fadeIn{from{opacity:0; transform:translateY(6px);} to{opacity:1; transform:translateY(0);}}
+
+  /* ---------- Season chart (Tab 1) ---------- */
+  .season-group{margin-bottom:44px;}
+  .season-group-head{
+    display:flex; align-items:baseline; gap:12px; margin-bottom:18px; padding-bottom:10px;
+    border-bottom:1px solid var(--line-soft);
+  }
+  .season-group-head .gdot{width:11px; height:11px; border-radius:50%; background:var(--accent);}
+  .season-group-head h2{font-size:21px; margin:0; font-weight:600;}
+  .season-group-head .en{font-family:'EB Garamond',serif; font-style:italic; color:var(--ink-faint); font-size:14px;}
+
+  .season-cards{display:grid; grid-template-columns:repeat(3,1fr); gap:16px;}
+  .season-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-md);
+    padding:16px 16px 14px; box-shadow:var(--shadow-tiny);
+  }
+  .season-card .sc-head{display:flex; justify-content:space-between; align-items:baseline; margin-bottom:12px;}
+  .season-card .sc-head h3{font-size:16px; margin:0; font-weight:600;}
+  .season-card .sc-head .en{font-size:11px; color:var(--ink-faint); font-family:'EB Garamond',serif; font-style:italic;}
+  .swatch-strip{display:flex; border-radius:8px; overflow:hidden; height:52px; border:1px solid rgba(0,0,0,0.06);}
+  .swatch-strip .sw{flex:1; height:100%; position:relative;}
+  .swatch-strip .sw:hover::after{
+    content:attr(data-hex); position:absolute; bottom:100%; left:50%; transform:translateX(-50%);
+    background:var(--ink); color:var(--surface); font-size:10px; padding:3px 6px; border-radius:4px;
+    white-space:nowrap; margin-bottom:4px; font-family:'EB Garamond',serif; letter-spacing:0.5px; z-index:5;
+  }
+
+  /* ---------- Assessment (Tab 2) ---------- */
+  .assess-progress{display:flex; align-items:center; gap:8px; margin-bottom:26px; flex-wrap:wrap;}
+  .assess-progress .step-dot{
+    width:30px; height:30px; border-radius:50%; border:1.5px solid var(--line); display:flex; align-items:center;
+    justify-content:center; font-size:12px; color:var(--ink-faint); font-family:'EB Garamond',serif; background:var(--surface);
+  }
+  .assess-progress .step-dot.done{background:var(--ink); border-color:var(--ink); color:var(--surface);}
+  .assess-progress .step-dot.current{border-color:var(--ink); color:var(--ink); font-weight:700;}
+  .assess-progress .step-line{flex:1; height:1px; background:var(--line); min-width:10px;}
+
+  .family-title{text-align:center; margin-bottom:6px;}
+  .family-title .eyebrow{font-family:'EB Garamond',serif; font-style:italic; color:var(--accent); letter-spacing:2px; font-size:12px; text-transform:uppercase;}
+  .family-title h2{font-size:26px; margin:6px 0 6px; font-weight:600;}
+  .family-title p{color:var(--ink-soft); font-size:13.5px; margin:0 0 24px;}
+
+  .blind-notice{
+    max-width:480px; margin:0 auto 22px; text-align:center; font-size:11.5px; color:var(--ink-faint);
+    font-family:'EB Garamond',serif; font-style:italic; letter-spacing:0.3px;
+  }
+  .blind-notice b{color:var(--ink-soft); font-style:normal;}
+
+  .candidate-grid{
+    display:grid; grid-template-columns:repeat(auto-fill,minmax(84px,1fr)); gap:12px; margin:22px 0 30px;
+  }
+  .cand{
+    border-radius:var(--radius-sm); overflow:hidden; border:2px solid transparent; background:var(--surface);
+    box-shadow:var(--shadow-tiny); position:relative; transition:transform .14s ease, border-color .14s ease;
+    aspect-ratio:1/1; cursor:pointer;
+  }
+  .cand .cf{width:100%; height:100%;}
+  .cand:hover{transform:translateY(-2px);}
+  .cand.on-left{border-color:var(--ink);}
+  .cand.on-right{border-color:#8a8a86; border-style:dashed;}
+  .cand.final{border-color:var(--gold); border-style:solid; box-shadow:0 0 0 1px var(--gold);}
+  .cand .final-mark{
+    position:absolute; top:4px; right:4px; width:18px; height:18px; border-radius:50%; background:var(--gold);
+    color:#fff; font-size:10px; display:flex; align-items:center; justify-content:center;
+  }
+  .cand .slot-mark{
+    position:absolute; top:4px; left:4px; font-size:9px; padding:2px 5px; border-radius:4px; color:#fff;
+    letter-spacing:0.5px; font-family:'EB Garamond',serif;
+  }
+  .cand.on-left .slot-mark{background:var(--ink);}
+  .cand.on-right .slot-mark{background:#6d6d6a;}
+
+  .compare-panel{
+    display:flex; justify-content:center; gap:clamp(14px,5vw,60px); align-items:center; margin:6px 0 8px; flex-wrap:wrap;
+  }
+  .pick-btn{
+    background:var(--surface); border:1.5px solid var(--line); padding:9px 18px; border-radius:999px;
+    font-size:12.5px; font-weight:600; color:var(--ink); display:flex; align-items:center; gap:7px;
+  }
+  .pick-btn:disabled{opacity:0.4; cursor:not-allowed;}
+  .pick-btn:not(:disabled):hover{border-color:var(--gold); color:var(--gold);}
+
+  .final-row{
+    display:flex; justify-content:center; gap:14px; margin:26px 0 10px; min-height:64px; flex-wrap:wrap;
+  }
+  .final-chip{
+    display:flex; align-items:center; gap:9px; background:var(--surface); border:1px solid var(--gold);
+    padding:8px 14px 8px 8px; border-radius:999px; box-shadow:var(--shadow-tiny); font-size:12.5px;
+  }
+  .final-chip .fc-sw{width:26px; height:26px; border-radius:50%; border:1px solid rgba(0,0,0,0.1);}
+  .final-chip button{border:none; background:none; color:var(--ink-faint); font-size:14px; padding:0 2px;}
+  .final-chip button:hover{color:#a33;}
+  .final-empty{
+    color:var(--ink-faint); font-size:12.5px; font-family:'EB Garamond',serif; font-style:italic;
+    display:flex; align-items:center;
+  }
+
+  .assess-nav{display:flex; justify-content:center; gap:14px; margin-top:26px;}
+
+  /* ---------- Result ---------- */
+  .result-banner{
+    max-width:640px; margin:24px auto 10px; text-align:center; background:var(--surface);
+    border:1.5px solid var(--ink); border-radius:var(--radius-lg); padding:30px 26px; box-shadow:var(--shadow-soft);
+  }
+  .result-banner .eyebrow{font-family:'EB Garamond',serif; font-style:italic; color:var(--accent); letter-spacing:2px; font-size:12px; text-transform:uppercase;}
+  .result-banner h1{font-size:clamp(24px,4vw,32px); margin:12px 0 4px; font-weight:700; line-height:1.5;}
+  .result-banner .sub-en{font-family:'EB Garamond',serif; font-style:italic; color:var(--ink-soft); font-size:14px;}
+
+  .tally-bars{max-width:520px; margin:34px auto; display:flex; flex-direction:column; gap:14px;}
+  .tally-row{display:flex; align-items:center; gap:12px; font-size:13px;}
+  .tally-row .tname{width:88px; text-align:right; flex-shrink:0; font-weight:500;}
+  .tally-row .tbar-track{flex:1; height:9px; background:var(--line-soft); border-radius:6px; overflow:hidden;}
+  .tally-row .tbar-fill{height:100%; border-radius:6px; background:var(--accent);}
+  .tally-row.is-top .tbar-fill{background:var(--gold);}
+  .tally-row.is-top .tname{color:var(--gold); font-weight:700;}
+  .tally-row .tcount{width:34px; font-family:'EB Garamond',serif; font-style:italic; color:var(--ink-soft);}
+  .tally-detail{font-size:11px; color:var(--ink-faint); margin-top:2px;}
+
+  .result-detail-title{text-align:center; margin:52px 0 24px;}
+  .result-detail-title h3{font-size:19px; margin:0 0 4px;}
+  .result-detail-title p{color:var(--ink-faint); font-size:12.5px; font-family:'EB Garamond',serif; font-style:italic;}
+
+  .result-grid{display:grid; grid-template-columns:repeat(3,1fr); gap:14px;}
+  .result-fam-card{
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius-md); padding:14px;
+    box-shadow:var(--shadow-tiny);
+  }
+  .result-fam-card .rf-name{font-size:12px; color:var(--ink-soft); margin-bottom:10px; font-weight:500;}
+  .result-fam-card .rf-colors{display:flex; gap:8px;}
+  .result-fam-card .rf-color{flex:1; text-align:center;}
+  .result-fam-card .rf-sw{height:44px; border-radius:6px; margin-bottom:6px; border:1px solid rgba(0,0,0,0.06);}
+  .result-fam-card .rf-lbl{font-size:10px; color:var(--ink-faint); line-height:1.3;}
+
+  /* ---------- Free comparison (Tab 3) ---------- */
+  .side-toggle{display:flex; justify-content:center; gap:10px; margin:8px 0 28px;}
+  .side-btn{
+    display:flex; align-items:center; gap:8px; padding:10px 20px; border-radius:999px; border:1.5px solid var(--line);
+    background:var(--surface); font-size:13px; font-weight:500; color:var(--ink-soft);
+  }
+  .side-btn .sd{width:12px; height:12px; border-radius:50%; border:1.5px solid var(--ink-faint);}
+  .side-btn.active{border-color:var(--ink); background:var(--surface-2); color:var(--ink);}
+  .side-btn.active .sd{background:var(--ink); border-color:var(--ink);}
+
+  .free-season-block{margin-bottom:30px;}
+  .free-season-block .fb-head{
+    display:flex; align-items:baseline; gap:10px; margin-bottom:10px; font-size:14px; font-weight:600;
+  }
+  .free-season-block .fb-head .en{font-size:11px; color:var(--ink-faint); font-family:'EB Garamond',serif; font-style:italic; font-weight:400;}
+  .free-swatch-row{display:grid; grid-template-columns:repeat(6,1fr); gap:8px;}
+  .free-sw{
+    height:46px; border-radius:7px; border:2px solid transparent; position:relative; transition:transform .12s ease;
+    cursor:pointer;
+  }
+  .free-sw:hover{transform:translateY(-2px);}
+  .free-sw.is-l{border-color:var(--ink);}
+  .free-sw.is-r{border-color:#8a8a86; border-style:dashed;}
+
+  footer{text-align:center; padding:50px 0 10px; color:var(--ink-faint); font-size:11.5px; font-family:'EB Garamond',serif; font-style:italic;}
+
+  @media (max-width:720px){
+    .skin-grid{grid-template-columns:repeat(2,1fr);}
+    .season-cards{grid-template-columns:1fr 1fr;}
+    .result-grid{grid-template-columns:1fr 1fr;}
+    .free-swatch-row{grid-template-columns:repeat(3,1fr);}
+  }
+  @media (max-width:460px){
+    .season-cards{grid-template-columns:1fr;}
+    .result-grid{grid-template-columns:1fr;}
+    .free-swatch-row{grid-template-columns:repeat(3,1fr);}
+  }
+</style>
+</head>
+<body>
+<div id="app">
+  <div id="topbar"></div>
+  <div id="view-root"></div>
+  <footer>個人色彩鑑定 · Neutral ground, honest color — Personal Color Analysis Studio</footer>
+</div>
+
+<script>
+/* ============================= DATA ============================= */
+const SKIN_TONES = [
+  {hex:'#ebe7dc', name:'偏紅冷一白'},
+  {hex:'#e4d2be', name:'偏紅冷二白'},
+  {hex:'#eed9c4', name:'偏紅暖一白'},
+  {hex:'#dbbda5', name:'偏紅暖二白'},
+  {hex:'#e7ddd4', name:'中性冷一白'},
+  {hex:'#dcc4b8', name:'中性冷二白'},
+  {hex:'#efdac5', name:'中性暖一白'},
+  {hex:'#ead2ba', name:'中性暖二白'},
+  {hex:'#f2e4d7', name:'偏綠冷白'},
+  {hex:'#e9d4c3', name:'偏綠冷二白'},
+  {hex:'#ead9c5', name:'偏綠暖一白'},
+  {hex:'#d9cfb6', name:'偏綠暖二白'},
+];
+
+const GROUP_META = {
+  '冬':{en:'Winter'}, '夏':{en:'Summer'}, '春':{en:'Spring'}, '秋':{en:'Autumn'},
+};
+const GROUP_ORDER = ['春','夏','秋','冬'];
+
+const SEASON_DATA = [
+  {id:1,  zh:'深冬', en:'Deep Winter',  group:'冬', colors:['#32356c','#e12325','#bbd81e','#1d713f','#6f359c','#101010']},
+  {id:2,  zh:'淨冬', en:'Clear Winter', group:'冬', colors:['#3449a6','#b62270','#ebf056','#398d3f','#865ab3','#3b3c40']},
+  {id:3,  zh:'冷冬', en:'Cool Winter',  group:'冬', colors:['#4664ba','#983ba3','#ecf38b','#3a7b65','#5b41a4','#6c6f78']},
+  {id:4,  zh:'深秋', en:'Deep Autumn',  group:'秋', colors:['#2c3554','#b62232','#ac774b','#19242a','#5c1c3f','#231725']},
+  {id:5,  zh:'柔秋', en:'Soft Autumn',  group:'秋', colors:['#354384','#b43b64','#8d772b','#253a2b','#4f3f97','#3b2f2f']},
+  {id:6,  zh:'暖秋', en:'Warm Autumn',  group:'秋', colors:['#5977ad','#c72a3b','#eacb25','#92923a','#67548c','#3a2f35']},
+  {id:7,  zh:'淺春', en:'Light Spring', group:'春', colors:['#4fafbd','#f28683','#e4e758','#b6d971','#c9c9cb','#735753']},
+  {id:8,  zh:'淨春', en:'Clear Spring', group:'春', colors:['#3562a5','#cd2c55','#e7bb64','#45ad4c','#875bb4','#674d3c']},
+  {id:9,  zh:'暖春', en:'Warm Spring',  group:'春', colors:['#3b6cb8','#a13737','#df9840','#7db749','#8d6abc','#625857']},
+  {id:10, zh:'淺夏', en:'Light Summer', group:'夏', colors:['#7ca4d8','#f674b2','#f5cc9e','#57c5a2','#9273bf','#4b5a6d']},
+  {id:11, zh:'柔夏', en:'Soft Summer',  group:'夏', colors:['#526590','#982e54','#cacb87','#5b937a','#7d85b3','#47383d']},
+  {id:12, zh:'冷夏', en:'Cool Summer',  group:'夏', colors:['#456eac','#881f3d','#f0f59b','#5fbba2','#545ba3','#3c3b40']},
+];
+
+const FAMILY_LABELS = ['藍調系','紅調系','黃綠系','綠調系','紫調系','深調系'];
+const FAMILY_DESC = [
+  '從靛藍到湛藍，比較最能襯托您氣色的藍色調',
+  '從桃紅到磚紅，比較最能點亮膚色的紅色調',
+  '黃與黃綠之間，比較哪一種讓您看來更有精神',
+  '從薄荷到墨綠，比較最和諧的綠色調',
+  '丁香到梅紫，比較最適合您的紫色調',
+  '深藏色是整體造型的定調色，請仔細比較'
+];
+
+/* ============================= STATE ============================= */
+const state = {
+  view: 'setup',           // setup | main
+  skin: null,
+  tab: 'chart',            // chart | assess | free
+  familyIndex: 0,
+  selections: [[],[],[],[],[],[]],   // per family: [{seasonId,zh,group,hex}]  (season info kept internally even though hidden during quiz)
+  quizNextSlot: 'left',
+  quizDone: false,
+  freeAvatar: {left:null, right:null},
+  freeActiveSide: 'left',
+};
+
+/* ============================= HELPERS ============================= */
+function seasonById(id){ return SEASON_DATA.find(s=>s.id===id); }
+
+/* ---- Avatar SVG : shaded contour bust, white towel head-wrap, subtle brows + natural lip colour only ----
+   No drawn eyes or nose — dimensionality comes from layered blend-mode shading (rim light,
+   cheekbone/jaw contour, temple falloff) rather than illustrated facial features.
+   uid namespaces every internal gradient/filter/clip id so multiple avatars can render
+   side-by-side on one page without id collisions. */
+function avatarSVG(uid){
+  const shoulders = "M28,338 C28,252 48,204 90,197 L150,197 C192,204 212,252 212,338 Z";
+  const collar = "M98,202 C110,216 130,216 142,202";
+  const facePath = "M120,76 C143,76 161,85 169,105 C177,125 177,146 171,162 C166,176 157,188 144,195 C134,200 127,202 120,202 C113,202 106,200 96,195 C83,188 74,176 69,162 C63,146 63,125 71,105 C79,85 97,76 120,76 Z";
+
+  return `
+  <svg viewBox="0 0 240 340" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <clipPath id="faceClip-${uid}"><path d="${facePath}"/></clipPath>
+
+      <filter id="blurS-${uid}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="2.2"/></filter>
+      <filter id="blurM-${uid}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="4.6"/></filter>
+      <filter id="blurL-${uid}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="9"/></filter>
+
+      <filter id="grain-${uid}">
+        <feTurbulence type="fractalNoise" baseFrequency="0.85" numOctaves="2" seed="7" result="n"/>
+        <feColorMatrix in="n" type="matrix" values="0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.55 0"/>
+      </filter>
+
+      <radialGradient id="skinShade-${uid}" cx="38%" cy="28%" r="78%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.20"/>
+        <stop offset="55%" stop-color="#ffffff" stop-opacity="0"/>
+        <stop offset="100%" stop-color="#000000" stop-opacity="0.11"/>
+      </radialGradient>
+      <radialGradient id="skinFill2-${uid}" cx="78%" cy="55%" r="55%">
+        <stop offset="0%" stop-color="#dfe6f2" stop-opacity="0.10"/>
+        <stop offset="100%" stop-color="#dfe6f2" stop-opacity="0"/>
+      </radialGradient>
+      <linearGradient id="garmentShade-${uid}" x1="0" y1="0" x2="0" y2="1">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.16"/>
+        <stop offset="100%" stop-color="#000000" stop-opacity="0.12"/>
+      </linearGradient>
+      <radialGradient id="towelShade-${uid}" cx="42%" cy="30%" r="75%">
+        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.9"/>
+        <stop offset="100%" stop-color="#e2e2e0" stop-opacity="1"/>
+      </radialGradient>
+    </defs>
+
+    <!-- shoulders / garment : full-size, matches the original comparison proportions -->
+    <path d="${shoulders}" fill="var(--garment,#c7c7c4)"/>
+    <path d="${shoulders}" fill="url(#garmentShade-${uid})"/>
+    <path d="${collar}" fill="none" stroke="rgba(0,0,0,0.14)" stroke-width="1.4"/>
+
+    <!-- neck -->
+    <path d="M99,182 L141,182 C143,193 143,205 140,217 L100,217 C97,205 97,193 99,182 Z" fill="var(--skin,#e8d3bd)"/>
+    <path d="M99,182 L141,182 C143,193 143,205 140,217 L100,217 C97,205 97,193 99,182 Z" fill="#000" opacity="0.08"/>
+    <ellipse cx="120" cy="184" rx="20" ry="6" fill="#5c3320" opacity="0.16" filter="url(#blurS-${uid})" style="mix-blend-mode:multiply"/>
+
+    <!-- ears (subtle subsurface-scattering rim glow) -->
+    <path d="M64,118 C56,120 55,137 65,141 C68,142 71,139 71,135 L71,122 C71,118 68,117 64,118 Z" fill="var(--skin,#e8d3bd)"/>
+    <path d="M56,121 C51,126 51,134 57,139" fill="none" stroke="#e8785a" stroke-opacity="0.35" stroke-width="1.6" stroke-linecap="round" filter="url(#blurS-${uid})" style="mix-blend-mode:screen"/>
+    <path d="M64,124 C60,126 60,134 66,136" fill="none" stroke="#000" stroke-opacity="0.13" stroke-width="1"/>
+    <path d="M176,118 C184,120 185,137 175,141 C172,142 169,139 169,135 L169,122 C169,118 172,117 176,118 Z" fill="var(--skin,#e8d3bd)"/>
+    <path d="M184,121 C189,126 189,134 183,139" fill="none" stroke="#e8785a" stroke-opacity="0.22" stroke-width="1.6" stroke-linecap="round" filter="url(#blurS-${uid})" style="mix-blend-mode:screen"/>
+    <path d="M176,124 C180,126 180,134 174,136" fill="none" stroke="#000" stroke-opacity="0.13" stroke-width="1"/>
+
+    <!-- white towel wrap (behind face) -->
+    <ellipse cx="120" cy="99" rx="73" ry="90" fill="var(--towel,#fbfbfa)"/>
+    <ellipse cx="120" cy="99" rx="73" ry="90" fill="url(#towelShade-${uid})" opacity="0.55"/>
+    <ellipse cx="120" cy="46" rx="17" ry="12" fill="var(--towel,#fbfbfa)" stroke="rgba(0,0,0,0.05)" stroke-width="1"/>
+    <path d="M107,44 C112,36 128,36 133,44" fill="none" stroke="rgba(0,0,0,0.07)" stroke-width="1.3" stroke-linecap="round"/>
+    <path d="M112,48 C116,52 124,52 128,48" fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="1.1" stroke-linecap="round"/>
+    <path d="M60,92 C78,66 100,53 122,51" fill="none" stroke="rgba(0,0,0,0.055)" stroke-width="1.2" stroke-linecap="round"/>
+    <path d="M70,132 C83,104 102,86 121,79" fill="none" stroke="rgba(0,0,0,0.045)" stroke-width="1.1" stroke-linecap="round"/>
+    <path d="M180,132 C167,104 148,86 129,79" fill="none" stroke="rgba(0,0,0,0.045)" stroke-width="1.1" stroke-linecap="round"/>
+    ${Array.from({length:26}).map((_,i)=>{
+      const ang = (i/26)*Math.PI*1.65 - Math.PI*0.1;
+      const rx = 60+ (i%3)*4, ry=76+(i%2)*5;
+      const x = 120 + Math.cos(ang)*rx*0.98;
+      const y = 94 + Math.sin(ang)*ry*0.94;
+      return `<circle cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="1" fill="rgba(0,0,0,0.05)"/>`;
+    }).join('')}
+    <path d="M69,90 C87,71 103,65 120,65 C137,65 153,71 171,90"
+          fill="none" stroke="rgba(0,0,0,0.06)" stroke-width="11" stroke-linecap="round"/>
+
+    <!-- ============ FACE : flat skin tone only — no facial features at all ============ -->
+    <path d="${facePath}" fill="var(--skin,#e8d3bd)"/>
+  </svg>`;
+}
+
+function avatarUnit(uid, skinHex, garmentHex, tagText){
+  return `
+  <div class="avatar-unit">
+    <div class="avatar-tag">${tagText}</div>
+    <div class="avatar-wrap" id="${uid}" style="--skin:${skinHex||'#e8d3bd'};--garment:${garmentHex||'#c7c7c4'};--towel:#fbfbfa;--towel-shadow:#e2e2e0;--lip:#a85952;--lip-deep:#8f423d;">
+      ${avatarSVG(uid)}
+    </div>
+    <div class="avatar-color-label" id="${uid}-label">
+      <span class="dot" style="background:${garmentHex||'#c7c7c4'}"></span>
+      <span>${garmentHex ? garmentHex.toUpperCase() : '尚未選色'}</span>
+    </div>
+  </div>`;
+}
+
+function setAvatarColor(uid, hex){
+  const el = document.getElementById(uid);
+  if(el) el.style.setProperty('--garment', hex);
+  const lbl = document.getElementById(uid+'-label');
+  if(lbl){
+    lbl.innerHTML = `<span class="dot" style="background:${hex}"></span><span>${hex.toUpperCase()}</span>`;
+  }
+}
+
+/* ============================= RENDER: TOPBAR ============================= */
+function renderTopbar(){
+  const bar = document.getElementById('topbar');
+  let profile = '';
+  if(state.view==='main'){
+    profile = `
+      <div class="profile-chip">
+        <span class="swatch" style="background:${state.skin.hex}"></span>
+        <span>${state.skin.name}</span>
+        <button id="btn-edit-setup">重新設定</button>
+      </div>`;
+  }
+  bar.innerHTML = `
+    <div class="brand">
+      <div class="mark"></div>
+      <div class="name">個人色彩鑑定<small>Personal Color Draping Studio</small></div>
+    </div>
+    ${profile}
+  `;
+  if(state.view==='main'){
+    document.getElementById('btn-edit-setup').onclick = ()=>{ state.view='setup'; renderAll(); };
+  }
+}
+
+/* ============================= RENDER: SETUP ============================= */
+function renderSetup(){
+  const root = document.getElementById('view-root');
+  root.innerHTML = `
+    <div class="setup-hero">
+      <span class="eyebrow">Before we drape — one honest detail</span>
+      <h1>請選擇最接近的膚色，<br class="hide-desktop">開始您的專屬色彩鑑定</h1>
+      <p>個人色彩鑑定透過布料在膚色上的映照，找出最襯托您氣色的色彩季型。請選擇最接近的膚色，我們將為您準備專屬的比對模特兒。</p>
+    </div>
+
+    <div class="setup-card">
+      <div class="step-label">
+        <div class="num">1</div>
+        <span class="t">選擇最接近的膚色</span>
+        <span class="sub">— 12 種基礎膚色分類</span>
+      </div>
+      <div class="skin-grid" id="skin-grid">
+        ${SKIN_TONES.map((s,i)=>`
+          <button class="skin-swatch ${state.skin && state.skin.hex===s.hex?'active':''}" data-idx="${i}">
+            <span class="fill" style="background:${s.hex}"></span>
+            <span class="lbl"><span>${s.name}</span><span class="ck">✓</span></span>
+          </button>
+        `).join('')}
+      </div>
+
+      <div class="setup-cta">
+        <button class="btn-primary" id="btn-start" ${!state.skin ? 'disabled':''}>
+          開始鑑定 →
+        </button>
+      </div>
+    </div>
+  `;
+
+  root.querySelectorAll('.skin-swatch').forEach(btn=>{
+    btn.onclick = ()=>{ state.skin = SKIN_TONES[+btn.dataset.idx]; renderSetup(); };
+  });
+  const startBtn = document.getElementById('btn-start');
+  if(startBtn){
+    startBtn.onclick = ()=>{
+      if(!state.skin) return;
+      state.view='main'; state.tab='chart';
+      renderAll();
+    };
+  }
+}
+
+/* ============================= RENDER: MAIN SHELL ============================= */
+function renderMain(){
+  const root = document.getElementById('view-root');
+  root.innerHTML = `
+    <div class="avatar-stage" id="stage-single"></div>
+    <div class="tabnav">
+      <button data-tab="chart" class="${state.tab==='chart'?'active':''}"><span class="idx">01</span>四季色彩表</button>
+      <button data-tab="assess" class="${state.tab==='assess'?'active':''}"><span class="idx">02</span>個人色彩鑑定</button>
+      <button data-tab="free" class="${state.tab==='free'?'active':''}"><span class="idx">03</span>自己比看看</button>
+    </div>
+    <div class="panel" id="tab-panel"></div>
+  `;
+  root.querySelectorAll('.tabnav button').forEach(btn=>{
+    btn.onclick = ()=>{ state.tab = btn.dataset.tab; renderMain(); };
+  });
+
+  const stage = document.getElementById('stage-single');
+  if(state.tab==='chart'){
+    stage.style.display='block';
+    stage.innerHTML = `
+      <div class="stage-note">Neutral judging ground — reference model</div>
+      <div class="avatar-row">
+        ${avatarUnit('hero-avatar', state.skin.hex, '#c7c7c4', 'Reference Model')}
+      </div>`;
+  } else {
+    stage.style.display='none';
+  }
+
+  if(state.tab==='chart') renderChartTab();
+  if(state.tab==='assess') renderAssessTab();
+  if(state.tab==='free') renderFreeTab();
+}
+
+
+/* ============================= TAB 1: FOUR SEASON CHART ============================= */
+function renderChartTab(){
+  const panel = document.getElementById('tab-panel');
+  let html = `
+    <div style="text-align:center;max-width:600px;margin:0 auto 40px;">
+      <span class="em" style="color:var(--accent);font-size:13px;letter-spacing:1px;">The complete twelve-type palette</span>
+      <h2 style="margin:8px 0 6px;font-weight:600;">四季十二型色彩總表</h2>
+      <p style="color:var(--ink-soft);font-size:13.5px;line-height:1.8;">依春、夏、秋、冬四大分類，各自展開三種細分型，共 12 型 · 72 色，滑鼠移至色塊可見色碼。</p>
+    </div>
+  `;
+  GROUP_ORDER.forEach(g=>{
+    const meta = GROUP_META[g];
+    const seasons = SEASON_DATA.filter(s=>s.group===g);
+    html += `
+      <div class="season-group">
+        <div class="season-group-head">
+          <span class="gdot"></span>
+          <h2>${g}季</h2>
+          <span class="en">${meta.en}</span>
+        </div>
+        <div class="season-cards">
+          ${seasons.map(s=>`
+            <div class="season-card">
+              <div class="sc-head"><h3>${s.zh}</h3><span class="en">${s.en}</span></div>
+              <div class="swatch-strip">
+                ${s.colors.map(c=>`<div class="sw" style="background:${c}" data-hex="${c}"></div>`).join('')}
+              </div>
+            </div>
+          `).join('')}
+        </div>
+      </div>
+    `;
+  });
+  panel.innerHTML = html;
+}
+
+/* ============================= TAB 2: PERSONAL ASSESSMENT (BLIND) ============================= */
+function renderAssessTab(){
+  const panel = document.getElementById('tab-panel');
+
+  if(state.quizDone){
+    renderAssessResult();
+    return;
+  }
+
+  const f = state.familyIndex;
+  const finals = state.selections[f];
+
+  let dots = '';
+  for(let i=0;i<6;i++){
+    const cls = i<f ? 'done' : (i===f ? 'current' : '');
+    dots += `<div class="step-dot ${cls}">${i<f?'✓':i+1}</div>`;
+    if(i<5) dots += `<div class="step-line"></div>`;
+  }
+
+  // candidates carry season info internally, but it is NEVER rendered to the DOM during the blind quiz
+  const candidates = SEASON_DATA.map(s=>({seasonId:s.id, zh:s.zh, group:s.group, hex:s.colors[f]}));
+  // shuffle presentation order deterministically per family so position gives no seasonal hint
+  const order = candidates.map((c,i)=>i);
+  let seed = f*97+13;
+  for(let i=order.length-1;i>0;i--){
+    seed = (seed*1103515245+12345) & 0x7fffffff;
+    const j = seed % (i+1);
+    [order[i],order[j]] = [order[j],order[i]];
+  }
+
+  panel.innerHTML = `
+    <div class="assess-progress">${dots}</div>
+
+    <div class="family-title">
+      <span class="eyebrow">Family ${f+1} of 6</span>
+      <h2>${FAMILY_LABELS[f]}</h2>
+      <p>${FAMILY_DESC[f]}</p>
+    </div>
+
+    <div class="avatar-stage" style="margin-bottom:10px;">
+      <div class="stage-note">Neutral judging ground</div>
+      <div class="avatar-row" id="quiz-avatars">
+        ${avatarUnit('quiz-left', state.skin.hex, null, '左側 · Left')}
+        ${avatarUnit('quiz-right', state.skin.hex, null, '右側 · Right')}
+      </div>
+    </div>
+
+    <div class="blind-notice">盲測模式 · 以下色塊<b>不標示任何季節名稱</b>，請單純依直覺與氣色比對挑選</div>
+
+    <div class="candidate-grid" id="candidate-grid">
+      ${order.map(i=>`
+        <div class="cand" data-i="${i}">
+          <div class="cf" style="background:${candidates[i].hex}"></div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="compare-panel">
+      <button class="pick-btn" id="pick-left">✓ 選為適合我（左）</button>
+      <button class="pick-btn" id="pick-right">✓ 選為適合我（右）</button>
+    </div>
+
+    <div class="final-row" id="final-row"></div>
+
+    <div class="assess-nav">
+      ${f>0 ? `<button class="btn-ghost" id="btn-prev-family">← 上一組</button>` : ''}
+      <button class="btn-primary" id="btn-next-family" ${finals.length<2?'disabled':''}>
+        ${f<5 ? '下一組 →' : '查看鑑定結果 →'}
+      </button>
+    </div>
+  `;
+
+  let leftIdx = null, rightIdx = null;
+
+  function refreshCandidateStyles(){
+    panel.querySelectorAll('.cand').forEach(el=>{
+      const i = +el.dataset.i;
+      el.classList.toggle('on-left', i===leftIdx);
+      el.classList.toggle('on-right', i===rightIdx);
+      const isFinal = finals.some(x=>x.hex===candidates[i].hex);
+      el.classList.toggle('final', isFinal);
+      let mark = el.querySelector('.final-mark');
+      if(isFinal && !mark){
+        el.insertAdjacentHTML('beforeend', `<div class="final-mark">✓</div>`);
+      } else if(!isFinal && mark){ mark.remove(); }
+      let slotMark = el.querySelector('.slot-mark');
+      if(slotMark) slotMark.remove();
+      if(i===leftIdx) el.insertAdjacentHTML('afterbegin', `<div class="slot-mark">L</div>`);
+      if(i===rightIdx) el.insertAdjacentHTML('afterbegin', `<div class="slot-mark">R</div>`);
+    });
+    document.getElementById('pick-left').disabled = leftIdx===null || finals.length>=2 || finals.some(x=>x.hex===candidates[leftIdx].hex);
+    document.getElementById('pick-right').disabled = rightIdx===null || finals.length>=2 || finals.some(x=>x.hex===candidates[rightIdx].hex);
+  }
+
+  function refreshFinalRow(){
+    const row = document.getElementById('final-row');
+    if(finals.length===0){
+      row.innerHTML = `<div class="final-empty">尚未選擇 · 請比較後點選「選為適合我」</div>`;
+      return;
+    }
+    row.innerHTML = finals.map((c,idx)=>`
+      <div class="final-chip">
+        <span class="fc-sw" style="background:${c.hex}"></span>
+        <span>${c.hex.toUpperCase()}</span>
+        <button data-remove="${idx}">✕</button>
+      </div>
+    `).join('');
+    row.querySelectorAll('button[data-remove]').forEach(btn=>{
+      btn.onclick = ()=>{
+        finals.splice(+btn.dataset.remove,1);
+        document.getElementById('btn-next-family').disabled = finals.length<2;
+        refreshFinalRow();
+        refreshCandidateStyles();
+      };
+    });
+  }
+
+  panel.querySelectorAll('.cand').forEach(el=>{
+    el.onclick = ()=>{
+      const i = +el.dataset.i;
+      const hex = candidates[i].hex;
+      if(state.quizNextSlot==='left'){
+        leftIdx = i; setAvatarColor('quiz-left', hex);
+        state.quizNextSlot='right';
+      } else {
+        rightIdx = i; setAvatarColor('quiz-right', hex);
+        state.quizNextSlot='left';
+      }
+      refreshCandidateStyles();
+    };
+  });
+
+  document.getElementById('pick-left').onclick = ()=>{
+    if(leftIdx===null || finals.length>=2) return;
+    const c = candidates[leftIdx];
+    if(!finals.some(x=>x.hex===c.hex)) finals.push(c);
+    document.getElementById('btn-next-family').disabled = finals.length<2;
+    refreshFinalRow(); refreshCandidateStyles();
+  };
+  document.getElementById('pick-right').onclick = ()=>{
+    if(rightIdx===null || finals.length>=2) return;
+    const c = candidates[rightIdx];
+    if(!finals.some(x=>x.hex===c.hex)) finals.push(c);
+    document.getElementById('btn-next-family').disabled = finals.length<2;
+    refreshFinalRow(); refreshCandidateStyles();
+  };
+
+  const prevBtn = document.getElementById('btn-prev-family');
+  if(prevBtn) prevBtn.onclick = ()=>{ state.familyIndex--; renderAssessTab(); };
+
+  document.getElementById('btn-next-family').onclick = ()=>{
+    if(finals.length<2) return;
+    if(state.familyIndex<5){ state.familyIndex++; renderAssessTab(); }
+    else { state.quizDone = true; renderAssessTab(); }
+  };
+
+  refreshFinalRow();
+  refreshCandidateStyles();
+}
+
+function renderAssessResult(){
+  const panel = document.getElementById('tab-panel');
+  const allPicks = state.selections.flat(); // exactly 12 picks
+  const groupCount = {'春':0,'夏':0,'秋':0,'冬':0};
+  const seasonCount = {};
+  allPicks.forEach(p=>{
+    groupCount[p.group]++;
+    seasonCount[p.zh] = (seasonCount[p.zh]||0)+1;
+  });
+  const maxGroupCount = Math.max(...Object.values(groupCount));
+  const topGroup = GROUP_ORDER.find(g=>groupCount[g]===maxGroupCount);
+  const topMeta = GROUP_META[topGroup];
+  const sortedGroups = GROUP_ORDER.slice().sort((a,b)=>groupCount[b]-groupCount[a]);
+  const statLine = sortedGroups.filter(g=>groupCount[g]>0).map(g=>`${g}季 ${groupCount[g]} 個`).join('、');
+
+  panel.innerHTML = `
+    <div class="result-banner">
+      <span class="eyebrow">Diagnosis complete — 12 / 12 colours chosen</span>
+      <h1>您的「${topGroup}季」顏色選擇最多，<br>您是屬於『${topGroup}季型』人！</h1>
+      <div class="sub-en">${topMeta.en} dominant · ${groupCount[topGroup]} / 12 votes</div>
+    </div>
+
+    <p style="text-align:center;color:var(--ink-soft);font-size:13.5px;margin:20px 0 6px;">各季節選色統計：${statLine}</p>
+
+    <div class="avatar-stage" style="margin:22px 0 10px;">
+      <div class="stage-note">Result preview</div>
+      <div class="avatar-row">
+        ${avatarUnit('result-avatar', state.skin.hex, SEASON_DATA.find(s=>s.group===topGroup).colors[0], `${topGroup}季代表色`)}
+      </div>
+    </div>
+
+    <div class="tally-bars">
+      ${sortedGroups.map(g=>{
+        const meta = GROUP_META[g];
+        const cnt = groupCount[g];
+        const detail = SEASON_DATA.filter(s=>s.group===g).map(s=>`${s.zh} ${seasonCount[s.zh]||0}`).join('、');
+        return `
+        <div>
+          <div class="tally-row ${g===topGroup?'is-top':''}">
+            <div class="tname">${g}季 ${meta.en}</div>
+            <div class="tbar-track"><div class="tbar-fill" style="width:${(cnt/12*100)}%"></div></div>
+            <div class="tcount">${cnt}</div>
+          </div>
+          <div class="tally-detail" style="margin-left:100px;">（${detail}）</div>
+        </div>`;
+      }).join('')}
+    </div>
+
+    <div class="result-detail-title">
+      <h3>您最終選出的 12 個色塊</h3>
+      <p>Six families, two favourites each — now revealed with season origin</p>
+    </div>
+    <div class="result-grid">
+      ${state.selections.map((sel,i)=>`
+        <div class="result-fam-card">
+          <div class="rf-name">${FAMILY_LABELS[i]}</div>
+          <div class="rf-colors">
+            ${sel.map(c=>`
+              <div class="rf-color">
+                <div class="rf-sw" style="background:${c.hex}"></div>
+                <div class="rf-lbl">${c.zh}<br>${c.group}季</div>
+              </div>
+            `).join('')}
+          </div>
+        </div>
+      `).join('')}
+    </div>
+
+    <div class="assess-nav">
+      <button class="btn-ghost" id="btn-retake">重新測驗</button>
+    </div>
+  `;
+
+  document.getElementById('btn-retake').onclick = ()=>{
+    state.familyIndex=0;
+    state.selections=[[],[],[],[],[],[]];
+    state.quizDone=false;
+    state.quizNextSlot='left';
+    renderAssessTab();
+  };
+}
+
+/* ============================= TAB 3: FREE COMPARISON ============================= */
+function renderFreeTab(){
+  const panel = document.getElementById('tab-panel');
+  panel.innerHTML = `
+    <div class="family-title">
+      <span class="eyebrow">Sandbox mode</span>
+      <h2>自己比看看</h2>
+      <p>自由挑選任意兩個顏色，即時套用在左右模特兒身上，觀察哪一種更襯托您的膚色。</p>
+    </div>
+
+    <div class="avatar-stage" style="margin-bottom:18px;">
+      <div class="stage-note">Neutral judging ground</div>
+      <div class="avatar-row">
+        ${avatarUnit('free-left', state.skin.hex, null, '左側 · Left')}
+        ${avatarUnit('free-right', state.skin.hex, null, '右側 · Right')}
+      </div>
+    </div>
+
+    <div class="side-toggle">
+      <button class="side-btn ${state.freeActiveSide==='left'?'active':''}" id="set-side-left">
+        <span class="sd"></span>目前指定：左側模特兒
+      </button>
+      <button class="side-btn ${state.freeActiveSide==='right'?'active':''}" id="set-side-right">
+        <span class="sd"></span>目前指定：右側模特兒
+      </button>
+    </div>
+
+    <div id="free-swatch-area"></div>
+  `;
+
+  if(state.freeAvatar.left) setAvatarColor('free-left', state.freeAvatar.left);
+  if(state.freeAvatar.right) setAvatarColor('free-right', state.freeAvatar.right);
+
+  document.getElementById('set-side-left').onclick = ()=>{ state.freeActiveSide='left'; renderFreeTab(); };
+  document.getElementById('set-side-right').onclick = ()=>{ state.freeActiveSide='right'; renderFreeTab(); };
+
+  const area = document.getElementById('free-swatch-area');
+  let html = '';
+  GROUP_ORDER.forEach(g=>{
+    const meta = GROUP_META[g];
+    const seasons = SEASON_DATA.filter(s=>s.group===g);
+    seasons.forEach(s=>{
+      html += `
+        <div class="free-season-block">
+          <div class="fb-head">${s.zh} <span class="en">${s.en}</span></div>
+          <div class="free-swatch-row">
+            ${s.colors.map(c=>`<div class="free-sw" style="background:${c}" data-hex="${c}" title="${c}"></div>`).join('')}
+          </div>
+        </div>`;
+    });
+  });
+  area.innerHTML = html;
+
+  function refreshFreeHighlight(){
+    area.querySelectorAll('.free-sw').forEach(el=>{
+      const hex = el.dataset.hex;
+      el.classList.toggle('is-l', state.freeAvatar.left===hex);
+      el.classList.toggle('is-r', state.freeAvatar.right===hex);
+    });
+  }
+  area.querySelectorAll('.free-sw').forEach(el=>{
+    el.onclick = ()=>{
+      const hex = el.dataset.hex;
+      if(state.freeActiveSide==='left'){
+        state.freeAvatar.left = hex; setAvatarColor('free-left', hex);
+      } else {
+        state.freeAvatar.right = hex; setAvatarColor('free-right', hex);
+      }
+      refreshFreeHighlight();
+    };
+  });
+  refreshFreeHighlight();
+}
+
+/* ============================= ROOT RENDER ============================= */
+function renderAll(){
+  renderTopbar();
+  if(state.view==='setup') renderSetup();
+  else renderMain();
+}
+renderAll();
+</script>
+</body>
+</html>
